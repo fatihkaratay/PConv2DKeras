@@ -103,3 +103,36 @@ class PConv2D(Conv2D):
             img_output = self.activation(img_output)
         
         return [img_output, mask_output]
+    
+    
+    def compute_output_shape(self, input_shape):
+        if self.data_format == 'channels_last':
+            space = input_shape[0][1:-1]
+            new_space = []
+            for i in range(len(space)):
+                new_dim = conv_utils.conv_output_length(
+                    space[i],
+                    self.kernel_size[i],
+                    padding='same',
+                    stride=self.strides[i],
+                    dilation=self.dilation_rate[i]
+                )
+                new_space.append(new_dim)
+            new_shape = (input_shape[0][0], ) + tuple(new_space) + (self.filters)
+            return [new_shape, new_shape]
+        
+        if self.data_format == 'channels_first':
+            space = input_shape[2:]
+            new_space = []
+            for i in range(len(space)):
+                new_dim = conv_utils.conv_input_length(
+                    space[i],
+                    self.kernel_size[i],
+                    padding='same',
+                    stride=self.strides[i],
+                    dilation=self.dilation_rate[i]
+                )
+                new_space.append(new_dim)
+            new_shape = (input_shape[0], self.filters) + tuple(new_space)
+            return [new_shape, new_shape]
+            
